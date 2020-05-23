@@ -1,4 +1,4 @@
-# AdvancedRocketry
+# AdvancedRocketry for Modpack Terra Firma Rescue
 Advanced Rocketry is a mod about space, exploration, and resources
 
 <b>ADVANCED ROCKETRY DOES NOT ENSURE COMPATIBILITY WITH ANYTHING OTHER THAN FORGE. ANY SERVER SOFTWARE LIKE SPONGE, ETC HAS NO GUARANTEE OF SUPPORT</b> 
