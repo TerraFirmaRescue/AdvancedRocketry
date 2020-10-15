@@ -1,13 +1,13 @@
 [
 {
   "modid": "advancedRocketry",
-  "name": "Advanced Rocketry",
+  "name": "AR-TFR",
   "description": "A space mod for minecraft, adds planets, rockets, and some machines",
   "version": "${version}",
   "mcversion": "1.7.10",
   "url": "http://minecraft.curseforge.com/projects/advanced-rocketry",
   "updateUrl": "",
-  "authorList": ["zmaster587"],
+  "authorList": ["zmaster587&MoegTeam"],
   "credits": "",
   "logoFile": "",
   "screenshots": [],

@@ -26,6 +26,7 @@ public class AdvancedRocketryBiomes {
 	public static BiomeGenBase marsh;
 	public static BiomeGenBase oceanSpires;
 	public static BiomeGenBase moonBiomeDark;
+	public static BiomeGenBase BiomeGenVenus;
 	private AdvancedRocketryBiomes() {
 		registeredBiomes = new ArrayList<BiomeGenBase>();
 		registeredHighPressureBiomes = new LinkedList<BiomeGenBase>();

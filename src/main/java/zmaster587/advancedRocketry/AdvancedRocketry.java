@@ -1,14 +1,38 @@
 package zmaster587.advancedRocketry;
+import Moegaddon.ItemLoader;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.Random;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import Moegaddon.texture;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLMissingMappingsEvent;
 import cpw.mods.fml.common.event.FMLMissingMappingsEvent.MissingMapping;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
@@ -19,16 +43,15 @@ import net.minecraft.block.BlockGlass;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.Item.ToolMaterial;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
 import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.ToolMaterial;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -43,7 +66,14 @@ import net.minecraftforge.oredict.OreDictionary.OreRegisterEvent;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import zmaster587.advancedRocketry.achievements.ARAchivements;
-import zmaster587.advancedRocketry.api.*;
+import zmaster587.advancedRocketry.api.AdvancedRocketryAPI;
+import zmaster587.advancedRocketry.api.AdvancedRocketryBiomes;
+import zmaster587.advancedRocketry.api.AdvancedRocketryBlocks;
+import zmaster587.advancedRocketry.api.AdvancedRocketryFluids;
+import zmaster587.advancedRocketry.api.AdvancedRocketryItems;
+import zmaster587.advancedRocketry.api.Constants;
+import zmaster587.advancedRocketry.api.MaterialGeode;
+import zmaster587.advancedRocketry.api.SatelliteRegistry;
 import zmaster587.advancedRocketry.api.atmosphere.AtmosphereRegister;
 import zmaster587.advancedRocketry.api.dimension.solar.StellarBody;
 import zmaster587.advancedRocketry.api.fuel.FuelRegistry;
@@ -63,6 +93,7 @@ import zmaster587.advancedRocketry.block.BlockElectricMushroom;
 import zmaster587.advancedRocketry.block.BlockFluid;
 import zmaster587.advancedRocketry.block.BlockForceField;
 import zmaster587.advancedRocketry.block.BlockForceFieldProjector;
+import zmaster587.advancedRocketry.block.BlockFuelTank;
 import zmaster587.advancedRocketry.block.BlockGeneric;
 import zmaster587.advancedRocketry.block.BlockIntake;
 import zmaster587.advancedRocketry.block.BlockLandingPad;
@@ -78,7 +109,6 @@ import zmaster587.advancedRocketry.block.BlockRedstoneEmitter;
 import zmaster587.advancedRocketry.block.BlockRocketMotor;
 import zmaster587.advancedRocketry.block.BlockSeal;
 import zmaster587.advancedRocketry.block.BlockSeat;
-import zmaster587.advancedRocketry.block.BlockFuelTank;
 import zmaster587.advancedRocketry.block.BlockSolarGenerator;
 import zmaster587.advancedRocketry.block.BlockSolarPanel;
 import zmaster587.advancedRocketry.block.BlockStationModuleDockingPort;
@@ -86,6 +116,7 @@ import zmaster587.advancedRocketry.block.BlockSuitWorkstation;
 import zmaster587.advancedRocketry.block.BlockThermiteTorch;
 import zmaster587.advancedRocketry.block.BlockTileNeighborUpdate;
 import zmaster587.advancedRocketry.block.BlockTileRedstoneEmitter;
+import zmaster587.advancedRocketry.block.BlockTorchUnlit;
 import zmaster587.advancedRocketry.block.BlockTransciever;
 import zmaster587.advancedRocketry.block.BlockWarpCore;
 import zmaster587.advancedRocketry.block.BlockWarpShipMonitor;
@@ -97,7 +128,6 @@ import zmaster587.advancedRocketry.block.plant.BlockAlienLeaves;
 import zmaster587.advancedRocketry.block.plant.BlockAlienPlanks;
 import zmaster587.advancedRocketry.block.plant.BlockAlienSapling;
 import zmaster587.advancedRocketry.block.plant.BlockAlienWood;
-import zmaster587.advancedRocketry.block.BlockTorchUnlit;
 import zmaster587.advancedRocketry.command.WorldCommand;
 import zmaster587.advancedRocketry.common.CommonProxy;
 import zmaster587.advancedRocketry.dimension.DimensionManager;
@@ -120,17 +150,33 @@ import zmaster587.advancedRocketry.event.PlanetEventHandler;
 import zmaster587.advancedRocketry.event.WorldEvents;
 import zmaster587.advancedRocketry.integration.CompatibilityMgr;
 import zmaster587.advancedRocketry.integration.GalacticCraftHandler;
-import zmaster587.libVulpes.inventory.GuiHandler;
-import zmaster587.libVulpes.items.ItemBlockMeta;
-import zmaster587.libVulpes.items.ItemIngredient;
-import zmaster587.libVulpes.items.ItemProjector;
-import zmaster587.advancedRocketry.item.*;
+import zmaster587.advancedRocketry.item.ItemAsteroidChip;
+import zmaster587.advancedRocketry.item.ItemAstroBed;
+import zmaster587.advancedRocketry.item.ItemAtmosphereAnalzer;
+import zmaster587.advancedRocketry.item.ItemBeaconFinder;
+import zmaster587.advancedRocketry.item.ItemBiomeChanger;
+import zmaster587.advancedRocketry.item.ItemBlockFluidTank;
+import zmaster587.advancedRocketry.item.ItemBlockWithIcon;
+import zmaster587.advancedRocketry.item.ItemCrystalBlock;
+import zmaster587.advancedRocketry.item.ItemData;
+import zmaster587.advancedRocketry.item.ItemDoor2;
+import zmaster587.advancedRocketry.item.ItemFluid;
+import zmaster587.advancedRocketry.item.ItemJackHammer;
+import zmaster587.advancedRocketry.item.ItemOreScanner;
+import zmaster587.advancedRocketry.item.ItemPackedStructure;
+import zmaster587.advancedRocketry.item.ItemPlanetIdentificationChip;
+import zmaster587.advancedRocketry.item.ItemSatellite;
+import zmaster587.advancedRocketry.item.ItemSatelliteIdentificationChip;
+import zmaster587.advancedRocketry.item.ItemSealDetector;
+import zmaster587.advancedRocketry.item.ItemSpaceElevatorChip;
+import zmaster587.advancedRocketry.item.ItemStationChip;
 import zmaster587.advancedRocketry.item.components.ItemJetpack;
 import zmaster587.advancedRocketry.item.components.ItemPressureTank;
 import zmaster587.advancedRocketry.item.components.ItemUpgrade;
 import zmaster587.advancedRocketry.item.tools.ItemBasicLaserGun;
 import zmaster587.advancedRocketry.mission.MissionGasCollection;
 import zmaster587.advancedRocketry.mission.MissionOreMining;
+import zmaster587.advancedRocketry.network.PacketAirParticle;
 import zmaster587.advancedRocketry.network.PacketAsteroidInfo;
 import zmaster587.advancedRocketry.network.PacketAtmSync;
 import zmaster587.advancedRocketry.network.PacketBiomeIDChange;
@@ -143,7 +189,6 @@ import zmaster587.advancedRocketry.network.PacketSpaceStationInfo;
 import zmaster587.advancedRocketry.network.PacketStationUpdate;
 import zmaster587.advancedRocketry.network.PacketStellarInfo;
 import zmaster587.advancedRocketry.network.PacketStorageTileUpdate;
-import zmaster587.advancedRocketry.network.PacketAirParticle;
 import zmaster587.advancedRocketry.satellite.SatelliteBiomeChanger;
 import zmaster587.advancedRocketry.satellite.SatelliteComposition;
 import zmaster587.advancedRocketry.satellite.SatelliteDensity;
@@ -153,9 +198,19 @@ import zmaster587.advancedRocketry.satellite.SatelliteOptical;
 import zmaster587.advancedRocketry.satellite.SatelliteOreMapping;
 import zmaster587.advancedRocketry.stations.SpaceObject;
 import zmaster587.advancedRocketry.stations.SpaceObjectManager;
+import zmaster587.advancedRocketry.tile.TileAtmosphereDetector;
+import zmaster587.advancedRocketry.tile.TileDrill;
+import zmaster587.advancedRocketry.tile.TileFluidTank;
+import zmaster587.advancedRocketry.tile.TileForceFieldProjector;
+import zmaster587.advancedRocketry.tile.TileGuidanceComputer;
+import zmaster587.advancedRocketry.tile.TileMissionController;
+import zmaster587.advancedRocketry.tile.TileRocketBuilder;
+import zmaster587.advancedRocketry.tile.TileSolarPanel;
+import zmaster587.advancedRocketry.tile.TileStationBuilder;
+import zmaster587.advancedRocketry.tile.TileStationDeployedAssembler;
+import zmaster587.advancedRocketry.tile.TileSuitWorkStation;
 import zmaster587.advancedRocketry.tile.Satellite.TileEntitySatelliteControlCenter;
 import zmaster587.advancedRocketry.tile.Satellite.TileSatelliteBuilder;
-import zmaster587.advancedRocketry.tile.*;
 import zmaster587.advancedRocketry.tile.cables.TileDataPipe;
 import zmaster587.advancedRocketry.tile.cables.TileEnergyPipe;
 import zmaster587.advancedRocketry.tile.cables.TileLiquidPipe;
@@ -169,7 +224,17 @@ import zmaster587.advancedRocketry.tile.infrastructure.TileRocketFluidLoader;
 import zmaster587.advancedRocketry.tile.infrastructure.TileRocketFluidUnloader;
 import zmaster587.advancedRocketry.tile.infrastructure.TileRocketLoader;
 import zmaster587.advancedRocketry.tile.infrastructure.TileRocketUnloader;
-import zmaster587.advancedRocketry.tile.multiblock.*;
+import zmaster587.advancedRocketry.tile.multiblock.TileAstrobodyDataProcessor;
+import zmaster587.advancedRocketry.tile.multiblock.TileAtmosphereTerraformer;
+import zmaster587.advancedRocketry.tile.multiblock.TileBeacon;
+import zmaster587.advancedRocketry.tile.multiblock.TileBiomeScanner;
+import zmaster587.advancedRocketry.tile.multiblock.TileGravityController;
+import zmaster587.advancedRocketry.tile.multiblock.TileObservatory;
+import zmaster587.advancedRocketry.tile.multiblock.TilePlanetSelector;
+import zmaster587.advancedRocketry.tile.multiblock.TileRailgun;
+import zmaster587.advancedRocketry.tile.multiblock.TileSpaceElevator;
+import zmaster587.advancedRocketry.tile.multiblock.TileSpaceLaser;
+import zmaster587.advancedRocketry.tile.multiblock.TileWarpCore;
 import zmaster587.advancedRocketry.tile.multiblock.energy.TileMicrowaveReciever;
 import zmaster587.advancedRocketry.tile.multiblock.machine.TileChemicalReactor;
 import zmaster587.advancedRocketry.tile.multiblock.machine.TileCrystallizer;
@@ -204,11 +269,12 @@ import zmaster587.advancedRocketry.world.biome.BiomeGenAlienForest;
 import zmaster587.advancedRocketry.world.biome.BiomeGenCrystal;
 import zmaster587.advancedRocketry.world.biome.BiomeGenDeepSwamp;
 import zmaster587.advancedRocketry.world.biome.BiomeGenHotDryRock;
-import zmaster587.advancedRocketry.world.biome.BiomeGenMoon;
 import zmaster587.advancedRocketry.world.biome.BiomeGenMarsh;
+import zmaster587.advancedRocketry.world.biome.BiomeGenMoon;
 import zmaster587.advancedRocketry.world.biome.BiomeGenOceanSpires;
 import zmaster587.advancedRocketry.world.biome.BiomeGenSpace;
 import zmaster587.advancedRocketry.world.biome.BiomeGenStormland;
+import zmaster587.advancedRocketry.world.biome.BiomeGenVenus;
 import zmaster587.advancedRocketry.world.decoration.MapGenLander;
 import zmaster587.advancedRocketry.world.ore.OreGenerator;
 import zmaster587.advancedRocketry.world.provider.WorldProviderPlanet;
@@ -227,6 +293,10 @@ import zmaster587.libVulpes.block.BlockRotatableModel;
 import zmaster587.libVulpes.block.BlockTile;
 import zmaster587.libVulpes.block.multiblock.BlockMultiBlockComponentVisible;
 import zmaster587.libVulpes.block.multiblock.BlockMultiblockMachine;
+import zmaster587.libVulpes.inventory.GuiHandler;
+import zmaster587.libVulpes.items.ItemBlockMeta;
+import zmaster587.libVulpes.items.ItemIngredient;
+import zmaster587.libVulpes.items.ItemProjector;
 import zmaster587.libVulpes.network.PacketHandler;
 import zmaster587.libVulpes.network.PacketItemModifcation;
 import zmaster587.libVulpes.recipe.RecipesMachine;
@@ -238,19 +308,8 @@ import zmaster587.libVulpes.util.BlockPosition;
 import zmaster587.libVulpes.util.InputSyncHandler;
 import zmaster587.libVulpes.util.SingleEntry;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-
-@Mod(modid="advancedRocketry", name="Advanced Rocketry", version="@MAJOR@.@MINOR@.@REVIS@@BUILD@", dependencies="required-after:libVulpes@[%LIBVULPESVERSION%,)")
+@Mod(modid="advancedRocketry", name="AR-TFR", version="@MAJOR@.@MINOR@.@REVIS@@BUILD@", dependencies="required-after:libVulpes@[%LIBVULPESVERSION%,)")
 public class AdvancedRocketry {
 
 
@@ -296,12 +355,14 @@ public class AdvancedRocketry {
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event)
 	{
+		//Moegaddon
+		 ItemLoader ItemLoader = new ItemLoader();
 		//Init API
 		DimensionManager.planetWorldProvider = WorldProviderPlanet.class;
 		AdvancedRocketryAPI.atomsphereSealHandler = SealableBlockHandler.INSTANCE;
 		((SealableBlockHandler)AdvancedRocketryAPI.atomsphereSealHandler).loadDefaultData();
 
-
+        
 		//Configuration  ---------------------------------------------------------------------------------------------
 
 		config = new Configuration(new File(event.getModConfigurationDirectory(), "/" + zmaster587.advancedRocketry.api.Configuration.configFolder + "/advancedRocketry.cfg"));
@@ -1288,6 +1349,7 @@ public class AdvancedRocketry {
 		AdvancedRocketryBiomes.marsh = new BiomeGenMarsh(config.get(BIOMECATETORY, "marsh", 117).getInt(), true);
 		AdvancedRocketryBiomes.oceanSpires = new BiomeGenOceanSpires(config.get(BIOMECATETORY, "oceanSpires", 118).getInt(), true);
 		AdvancedRocketryBiomes.moonBiomeDark = new BiomeGenMoon(config.get(BIOMECATETORY, "moonBiomeDarkId", 119).getInt(), true);
+		AdvancedRocketryBiomes.BiomeGenVenus = new BiomeGenVenus(config.get(BIOMECATETORY, "VenusId", 120).getInt(), true);
 		
 		AdvancedRocketryBiomes.instance.registerBiome(AdvancedRocketryBiomes.moonBiome);
 		AdvancedRocketryBiomes.instance.registerBiome(AdvancedRocketryBiomes.alienForest);

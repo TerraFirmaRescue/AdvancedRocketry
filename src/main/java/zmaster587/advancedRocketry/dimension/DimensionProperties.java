@@ -157,7 +157,8 @@ public class DimensionProperties implements Cloneable, IDimensionProperties {
 		GASGIANTBLUE(new ResourceLocation("advancedrocketry:textures/planets/gasgiantblue.png")),
 		GASGIANTRED(new ResourceLocation("advancedrocketry:textures/planets/gasgiantorange.png")),
 		GASGIANTBROWN(new ResourceLocation("advancedrocketry:textures/planets/gasgiantbrown.png")),
-		UNKNOWN(new ResourceLocation("advancedrocketry:textures/planets/unknown.png"))
+		UNKNOWN(new ResourceLocation("advancedrocketry:textures/planets/unknown.png")),
+		VENUS(new ResourceLocation("advancedrocketry:textures/planets/venus.png"))
 		;
 
 

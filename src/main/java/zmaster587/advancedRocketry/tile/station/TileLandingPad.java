@@ -190,7 +190,7 @@ public class TileLandingPad extends TileInventoryHatch implements ILinkableTile,
 
 	@SubscribeEvent
 	public void onRocketDismantle(RocketDismantleEvent event) {
-		if(!worldObj.isRemote && worldObj.provider.dimensionId == Configuration.spaceDimId) {
+		 if (!worldObj.isRemote && worldObj.provider != null && worldObj.provider.dimensionId == Configuration.spaceDimId) {
 
 			EntityRocketBase rocket = (EntityRocketBase)event.entity;
 			AxisAlignedBB bbCache = AxisAlignedBB.getBoundingBox(this.xCoord - 1, this.yCoord, this.zCoord - 1, this.xCoord + 1, this.yCoord + 2, this.zCoord + 1);

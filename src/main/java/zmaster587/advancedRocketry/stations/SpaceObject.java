@@ -442,7 +442,7 @@ public class SpaceObject implements ISpaceObject, IPlanetDefiner {
 		StationLandingLocation pos = new StationLandingLocation(new BlockPosition(x, 0, z));
 		
 		for(StationLandingLocation loc : spawnLocations) {
-			if(loc.equals(pos))
+			if(pos.equals(loc))
 				loc.setOccupied(full);
 		}
 	}
